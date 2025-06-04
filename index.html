@@ -1,27 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="script.js"></script>
-    <link rel="stylesheet" href="style.css">
-    
-</head>
-<body>
-    <div id="game-screen">
-        <div id="game-board">
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <script src="script.js" defer></script>
+        <link rel="stylesheet" href="style.css">
+
+    </head>
+
+    <body>
+        <!-- START SCREEN -->
+        <div id="start-screen">
+            <button id="play-btn">Play</button>
         </div>
-    </div> 
-    
-</body>
+
+        <!-- NAME INPUT SCREEN -->
+        <div id="name-screen" style="display: none;">
+            <label>
+                Player 1 Name:
+                <input type="text" id="player1-name" autocomplete="off" />
+            </label>
+            <label>
+                Player 2 Name:
+                <input type="text" id="player2-name" autocomplete="off" />
+            </label>
+            <button id="start-game-btn">Start Game</button>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div id="game-board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+        </div>
+
+    </body>
+
 </html>

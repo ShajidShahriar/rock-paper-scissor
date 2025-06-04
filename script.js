@@ -51,16 +51,16 @@ function Player(name, mark) {
     score: 0,
   };
 }
-
+///////////////////////////////////////////////////////////////////////////////START GAME//////////////////////////////////////////////////////////////////////////////////////////////////////
 const GameController = (function () {
   let player1;
   let player2;
   let currentPlayer;
   let gameOver = false;
 
-  function startGame() {
-    player1 = Player("shajid", "x");
-    player2 = Player("labib", "o");
+  function startGame(name1,name2) {
+    player1 = Player(name1, "x");
+    player2 = Player(name2, "o");
 
     currentPlayer = player1;
     Gameboard.resetBoard();
@@ -142,4 +142,48 @@ const GameController = (function () {
   };
 })();
 
+///////////////////////////////////////////////////////////////////////////////// hell begins here////////////////////////////////////////////////////////////////////////////////////////////// 
+const DisplayController = (function(){
+  const startScreen = document.getElementById('start-screen');
+  const nameScreen = document.getElementById('name-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const playButton = document.getElementById('play-btn');
+  const startGamebutton =document.getElementById('start-game-btn');
+
+
+  function showNameScreen() {
+    startScreen.style.display = "none";
+    nameScreen.style.display = "block";
+    console.log("Switching to name screen");
+
+  }
+  function showGameScreen() {
+    const name1 = document.getElementById("player1-name").value;
+    const name2 = document.getElementById("player2-name").value;
+
+    nameScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    console.log("switcing to game screen");
+    GameController.startGame(name1, name2);
+    console.log(`starting game with ${name1} & ${name2}`)
+  }
+
+  function init(){
+    playButton.addEventListener('click',showNameScreen);
+    startGamebutton.addEventListener('click',showGameScreen)
+    
+    //will hook more events here later
+    
+    console.log("DisplayController initialized");
+
+  }
+
+  return{
+    init
+  }
+})()
+
+
+
+DisplayController.init();
 GameController.startGame();
