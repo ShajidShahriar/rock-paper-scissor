@@ -37,3 +37,15 @@ body, html {
   cursor: pointer;
   user-select: none;
 }
+.result-message {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+  text-align: center;
+}
+
+#message-area button {
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}

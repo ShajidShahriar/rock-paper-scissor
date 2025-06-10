@@ -11,6 +11,7 @@ const Gameboard = (function () {
       board[i] = "";
     }
     console.log("board reset :", board);
+
   }
 
   function updateBoard(index, mark) {
@@ -59,6 +60,7 @@ const GameController = (function () {
   let gameOver = false;
 
   function startGame(name1,name2) {
+    gameOver = false;
     player1 = Player(name1, "x");
     player2 = Player(name2, "o");
 
@@ -80,10 +82,12 @@ const GameController = (function () {
       currentPlayer.score++;
       console.log(`${currentPlayer.name} wins`);
       gameOver = true;
+      DisplayController.showGameResult(`${currentPlayer.name} wins!`)
     }
     else if(checkDraw()){
         console.log("its a draw")
         gameOver = true
+        DisplayController.showGameResult("its a draw")
     }
 
     switchPlayer();
@@ -133,16 +137,24 @@ const GameController = (function () {
       currentPlayer = player1;
     }
   }
+  function getPlayers() {
+  return { player1, player2 };
+}
+
   return {
     playRound,
     startGame,
     switchPlayer,
     CheckWinner,
-    checkDraw
+    checkDraw,
+    getPlayers
   };
 })();
 
 ///////////////////////////////////////////////////////////////////////////////// hell begins here////////////////////////////////////////////////////////////////////////////////////////////// 
+// explanations given in the bottom 
+
+
 const DisplayController = (function(){
   const startScreen = document.getElementById('start-screen');
   const nameScreen = document.getElementById('name-screen');
@@ -164,9 +176,60 @@ const DisplayController = (function(){
     nameScreen.style.display = "none";
     gameScreen.style.display = "block";
     console.log("switcing to game screen");
-    GameController.startGame(name1, name2);
+    
+    GameController.startGame(name1,name2);
+    bindCellEvents();
     console.log(`starting game with ${name1} & ${name2}`)
   }
+  function renderBoard(){
+
+    const board = Gameboard.getBoard();
+    const cells = document.querySelectorAll(".cell")
+    
+
+    cells.forEach((cell,index) => {
+      cell.textContent = board[index]
+    })
+  }
+
+  function bindCellEvents() {
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    cell.addEventListener('click', () => {
+      const index = cell.getAttribute('data-index');
+      console.log(`index :${index}`)
+      GameController.playRound(parseInt(index));
+      renderBoard();
+    });
+  });
+}
+
+
+function showGameResult(message){
+  const messageArea = document.getElementById("message-area")
+  messageArea.innerHTML = "" ;
+
+  const resultText = document.createElement("div")
+  resultText.textContent = message ;
+  resultText.classList.add("result-messgae") ;
+  const cells = document.querySelectorAll(".cell")
+  const playAgainBtn = document.createElement("button")
+  playAgainBtn.textContent = "play-again"
+  playAgainBtn.addEventListener("click" , () => {
+    messageArea.innerHTML = "" ;
+    Gameboard.resetBoard();
+    
+    cells.forEach(cell => cell.textContent = "");
+
+    const { player1, player2 } = GameController.getPlayers();
+    GameController.startGame(player1.name, player2.name);
+    renderBoard()
+
+  })
+  messageArea.appendChild(resultText);
+  messageArea.appendChild(playAgainBtn);
+
+}
 
   function init(){
     playButton.addEventListener('click',showNameScreen);
@@ -178,12 +241,61 @@ const DisplayController = (function(){
 
   }
 
+
   return{
-    init
+    init,
+    renderBoard,
+    bindCellEvents,
+    showGameResult
   }
 })()
 
 
 
 DisplayController.init();
-GameController.startGame();
+
+
+/////////////////////////////////////////////////////////////// *important(took me days to figure out the flow)* /////////////////////////////////////////////////////////////
+/*  Big-picture flow in plain words(summarized with chatgpt):
+
+1. **Page loads** and `DisplayController.init()` wires up two buttons:
+   – “Play” shows the name-entry screen (`showNameScreen`).
+   – “Start Game” grabs the two names and flips to the game board (`showGameScreen`).
+
+2. **Starting the very first match** (`showGameScreen`):
+   • Reads the names from the inputs.  
+   • Calls `GameController.startGame(name1, name2)` →  
+     – Creates two `Player` objects, gives them marks “x” and “o”.  
+     – Resets the board with `Gameboard.resetBoard()` (fills all 9 slots with "").  
+     – Sets `currentPlayer` to player 1, clears any `gameOver` flag.  
+   • Hooks a click listener on every `.cell` via `bindCellEvents`.  
+   • Calls `renderBoard` to push the blank board to the UI.
+
+3. **During a normal turn** (user clicks any cell):
+   • The cell’s listener grabs its `data-index` and fires `GameController.playRound(index)`.  
+   • Inside `playRound`:
+     – If someone already won (`gameOver` true) it bounces out.  
+     – Otherwise tries `Gameboard.updateBoard(index, currentPlayer.mark)`.  
+       ▸ Rejects if the square’s busy or index out of range.  
+     – After a successful drop it checks for a win with `CheckWinner()`:  
+       ▸ Loops through all 8 winning combos and compares them to `currentPlayer.mark`.  
+     – If win → bumps that player’s `score`, flips `gameOver` to true, then `DisplayController.showGameResult("Alice wins!")`.  
+     – Else, `checkDraw()` scans the board for empty squares; if none → draw.  
+     – If neither win nor draw, `switchPlayer()` hands the turn to the other player, nothing else happens.  
+   • Back in the click listener, `renderBoard()` refreshes the visuals so the new X or O shows up.
+
+4. **End-state UI (`showGameResult`)**:
+   • Wipes the message area, drops in a little “X wins!” or “It’s a draw” div.  
+   • Builds a **Play Again** button and appends it under the message.
+
+5. **Hitting the Play-Again button**:
+   • Anonymous click handler runs:  
+     – Clears the message area.  
+     – Calls `Gameboard.resetBoard()` (all nine slots go back to "").  
+     – Empties every `.cell` text.  
+     – Pulls the stored `player1` and `player2` via `GameController.getPlayers()`.  
+     – Fires `GameController.startGame(player1.name, player2.name)` so scores reset to 0, board resets, `currentPlayer` becomes player 1 again.  
+     – Calls `renderBoard()` to sync the fresh blank board with the screen.  
+   • **Important:** the original cell listeners are still attached, so the board is immediately clickable for round 2.
+
+That’s the whole loop: setup → clicks feed `playRound` → a win/draw fires `showGameResult` → Play-Again rebuilds state and kicks off the next match with the same names.  */
