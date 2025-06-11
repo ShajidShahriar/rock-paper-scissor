@@ -58,11 +58,20 @@ const GameController = (function () {
   let player2;
   let currentPlayer;
   let gameOver = false;
-
+  let gameStarted = false
+  let hasPlayed = false
+  
+  function hasStarted(){
+    return gameStarted
+  }
   function startGame(name1,name2) {
+    gameStarted = true
     gameOver = false;
+    
+    if(!player1 || !player2) {
     player1 = Player(name1, "x");
     player2 = Player(name2, "o");
+    }
 
     currentPlayer = player1;
     Gameboard.resetBoard();
@@ -70,6 +79,7 @@ const GameController = (function () {
 
   function playRound(index) {
     console.log(`${currentPlayer.name} is playing `)
+    hasPlayed = true
 
     if (gameOver) return 
     
@@ -80,6 +90,8 @@ const GameController = (function () {
 
     if (CheckWinner()) {
       currentPlayer.score++;
+      console.log(`player1 : ${player1.score} `)
+      console.log(`player2 : ${player2.score}`)
       console.log(`${currentPlayer.name} wins`);
       gameOver = true;
       DisplayController.showGameResult(`${currentPlayer.name} wins!`)
@@ -89,10 +101,28 @@ const GameController = (function () {
         gameOver = true
         DisplayController.showGameResult("its a draw")
     }
+  
 
     switchPlayer();
+    DisplayController.updateScoreBoard()
    
   }
+  function hasAnyMoveBeenPlayed() {
+  return hasPlayed;
+}
+
+
+  function resetGame() {
+  player1 = null;
+  player2 = null;
+  currentPlayer = null;
+  gameOver = false;
+  gameStarted = false ;
+  hasPlayed = false ;
+  Gameboard.resetBoard();
+
+}
+
 
   function CheckWinner() {
     const board = Gameboard.getBoard();
@@ -147,7 +177,10 @@ const GameController = (function () {
     switchPlayer,
     CheckWinner,
     checkDraw,
-    getPlayers
+    getPlayers,
+    resetGame,
+    hasStarted,
+    hasAnyMoveBeenPlayed
   };
 })();
 
@@ -170,8 +203,18 @@ const DisplayController = (function(){
 
   }
   function showGameScreen() {
-    const name1 = document.getElementById("player1-name").value;
-    const name2 = document.getElementById("player2-name").value;
+    
+    
+    
+    
+    
+    const name1 = document.getElementById("player1-name").value.trim();
+    const name2 = document.getElementById("player2-name").value.trim();
+   
+  if (name1 === "" || name2 === "") {
+    alert("Please enter names for both players.");
+    return; 
+  }
 
     nameScreen.style.display = "none";
     gameScreen.style.display = "block";
@@ -223,6 +266,7 @@ function showGameResult(message){
 
     const { player1, player2 } = GameController.getPlayers();
     GameController.startGame(player1.name, player2.name);
+    updateScoreBoard()
     renderBoard()
 
   })
@@ -231,10 +275,105 @@ function showGameResult(message){
 
 }
 
+  function updateScoreBoard(){
+    const {player1 , player2} = GameController.getPlayers()
+    
+    const player1Div = document.getElementById("player1-score")
+    const player2Div = document.getElementById("player2-score")
+
+    player1Div.textContent = `${player1.name} : ${player1.score}`
+    player2Div.textContent = `${player2.name} : ${player2.score}`
+  }
+
+
+  function gameOver(){
+
+    const gameScreen = document.getElementById("game-screen");
+    const nameScreen = document.getElementById("name-screen");
+
+    const hasPlayed = GameController.hasAnyMoveBeenPlayed();
+
+    if (!hasPlayed) {
+      // Go directly to name screen, clean everything
+      gameScreen.style.display = "none";
+      nameScreen.style.display = "block";
+      GameController.resetGame(); // clears players and board
+      document.getElementById("player1-name").value = "";
+      document.getElementById("player2-name").value = "";
+      document.getElementById("main-menu-btn").textContent = "End Game";
+      return;
+    }
+
+    
+    
+    const winnerDiv = document.querySelector("#winner-box")
+
+    if(!winnerDiv){
+      const newWinnerDiv = document.createElement("div")
+      newWinnerDiv.id = "winner-box"
+
+      const {player1 , player2} = GameController.getPlayers();
+      let message  = ''
+
+      if(player1.score > player2.score){
+        message = `game over ! ${player1.name} wins ${player1.score} - ${player2.score}`
+      }
+      else if(player1.score < player2.score){
+        message =  `game over ! ${player2.name} wins ${player2.score} - ${player1.score}`
+      }
+      else{
+        message = `its a tie ! ${player1.score} - ${player2.score}`
+      }
+
+      newWinnerDiv.textContent = message
+      newWinnerDiv.classList.add("winner-box")
+
+      const gameScreen = document.getElementById("game-screen")
+      gameScreen.appendChild(newWinnerDiv)
+
+      const menuButton = document.getElementById("main-menu-btn")
+      menuButton.textContent = "Main menu"
+
+
+    }else{
+      winnerDiv.remove();
+
+      const nameScreen = document.getElementById("name-screen")
+      const gameScreen = document.getElementById("game-screen")
+
+      gameScreen.style.display = "none" 
+      nameScreen.style.display = "block"
+
+      
+      GameController.resetGame();
+      
+      const cells = document.querySelectorAll(".cell")
+      cells.forEach(cell => cell.textContent = "");
+      const score1 = document.getElementById("player1-score")
+      const score2 = document.getElementById("player2-score")
+
+      score1.textContent = ""
+      score2.textContent = ""
+
+      const menuBtn = document.getElementById("main-menu-btn")
+      menuBtn.textContent = "End Game"
+    }
+
+      document.getElementById("player1-name").value = "";
+      document.getElementById("player2-name").value = "";
+
+      document.getElementById("player1-name").focus();
+
+
+  }
+
   function init(){
+    
     playButton.addEventListener('click',showNameScreen);
     startGamebutton.addEventListener('click',showGameScreen)
-    
+    const mainMenuBtn = document.getElementById("main-menu-btn");
+    mainMenuBtn.addEventListener("click", gameOver);
+
     //will hook more events here later
     
     console.log("DisplayController initialized");
@@ -246,7 +385,9 @@ function showGameResult(message){
     init,
     renderBoard,
     bindCellEvents,
-    showGameResult
+    showGameResult,
+    updateScoreBoard,
+    gameOver
   }
 })()
 
