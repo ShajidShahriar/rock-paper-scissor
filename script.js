@@ -67,11 +67,13 @@ const GameController = (function () {
   function startGame(name1,name2) {
     gameStarted = true
     gameOver = false;
+      player1 = Player(name1, "x");
+      player2 = Player(name2, "o");
     
-    if(!player1 || !player2) {
-    player1 = Player(name1, "x");
-    player2 = Player(name2, "o");
-    }
+    // if(!player1 || !player2) {
+    // player1 = Player(name1, "x");
+    // player2 = Player(name2, "o");
+    // }
 
     currentPlayer = player1;
     Gameboard.resetBoard();
@@ -100,10 +102,12 @@ const GameController = (function () {
         console.log("its a draw")
         gameOver = true
         DisplayController.showGameResult("its a draw")
+    }else{
+      switchPlayer()
     }
   
 
-    switchPlayer();
+    
     DisplayController.updateScoreBoard()
    
   }
@@ -221,7 +225,7 @@ const DisplayController = (function(){
     console.log("switcing to game screen");
     
     GameController.startGame(name1,name2);
-    bindCellEvents();
+   
     console.log(`starting game with ${name1} & ${name2}`)
   }
   function renderBoard(){
@@ -373,7 +377,7 @@ function showGameResult(message){
     startGamebutton.addEventListener('click',showGameScreen)
     const mainMenuBtn = document.getElementById("main-menu-btn");
     mainMenuBtn.addEventListener("click", gameOver);
-
+    bindCellEvents()
     //will hook more events here later
     
     console.log("DisplayController initialized");
