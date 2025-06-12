@@ -67,30 +67,37 @@ const GameController = (function () {
   function startGame(name1,name2) {
     gameStarted = true
     gameOver = false;
-      player1 = Player(name1, "x");
-      player2 = Player(name2, "o");
+      // player1 = Player(name1, "x");
+      // player2 = Player(name2, "o");
     
-    // if(!player1 || !player2) {
-    // player1 = Player(name1, "x");
-    // player2 = Player(name2, "o");
-    // }
+    if(!player1 || !player2) {
+    player1 = Player(name1, "x");
+    player2 = Player(name2, "o");
+    }
 
     currentPlayer = player1;
     Gameboard.resetBoard();
   }
 
   function playRound(index) {
+    if (!gameStarted) {
+      return 
+    }
+    if (gameOver){
+      return 
+    }
     console.log(`${currentPlayer.name} is playing `)
     hasPlayed = true
 
-    if (gameOver) return 
+    console.log(`game started : ${gameStarted}`)
+    console.log(`game over : ${gameOver}`)
     
     const success = Gameboard.updateBoard(index, currentPlayer.mark);
     if (!success) {
       console.log("invalid move");
     }
 
-    if (CheckWinner()) {
+    else if (CheckWinner()){
       currentPlayer.score++;
       console.log(`player1 : ${player1.score} `)
       console.log(`player2 : ${player2.score}`)
@@ -104,6 +111,7 @@ const GameController = (function () {
         DisplayController.showGameResult("its a draw")
     }else{
       switchPlayer()
+      console.log("player switched ")
     }
   
 
@@ -174,6 +182,10 @@ const GameController = (function () {
   function getPlayers() {
   return { player1, player2 };
 }
+  function endSession() {
+    gameStarted = false;   // kill the session
+    gameOver     = false;  // optional: safety reset
+}
 
   return {
     playRound,
@@ -184,11 +196,12 @@ const GameController = (function () {
     getPlayers,
     resetGame,
     hasStarted,
-    hasAnyMoveBeenPlayed
+    hasAnyMoveBeenPlayed,
+    endSession
   };
 })();
 
-///////////////////////////////////////////////////////////////////////////////// hell begins here////////////////////////////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////////////// hell begins here (DOM) ////////////////////////////////////////////////////////////////////////////////////////////// 
 // explanations given in the bottom 
 
 
@@ -291,6 +304,9 @@ function showGameResult(message){
 
 
   function gameOver(){
+    GameController.endSession();
+    
+    
 
     const gameScreen = document.getElementById("game-screen");
     const nameScreen = document.getElementById("name-screen");
@@ -361,6 +377,7 @@ function showGameResult(message){
 
       const menuBtn = document.getElementById("main-menu-btn")
       menuBtn.textContent = "End Game"
+
     }
 
       document.getElementById("player1-name").value = "";
@@ -383,7 +400,6 @@ function showGameResult(message){
     console.log("DisplayController initialized");
 
   }
-
 
   return{
     init,
